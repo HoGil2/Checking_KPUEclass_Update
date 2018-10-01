@@ -6,7 +6,7 @@ import telegram
 import os
 import time
 
-my_token = '토큰번호'
+my_token = ''
 
 bot = telegram.Bot(token = my_token)
 
@@ -32,6 +32,9 @@ driver = webdriver.Chrome('C:/Users/rlf03/Downloads/chromedriver_win32/chromedri
 #user_agent = driver.find_element_by_css_selector('#user-agent')
 #print('User-Agent: ', user_agent)
 
+usr_id = ''
+usr_pwd = '!'
+
 def login():
     #로그인페이지
     login_page = 'http://eclass.kpu.ac.kr/ilos/main/member/login_form.acl'
@@ -43,20 +46,18 @@ def login():
     #로그인 아이디, 비밀번호 입력
     #####자동로그인하려면 암호화 필요
     while(login_page == driver.current_url):
-
-        usr_id = input("아이디를 입력해주세요.")
-        usr_pwd = input("비밀번호를 입력해주세요.")
         driver.find_element_by_name('usr_id').send_keys(usr_id)
         driver.find_element_by_name('usr_pwd').send_keys(usr_pwd)
         
         driver.find_element_by_xpath('//*[@id="login_btn"]').click()
-
+        """
         try:
             alert = driver.switch_to_alert()
             alert.accept()
             print("아이디와 비밀번호를 확인해주세요.")
         except:
             continue
+        """
 
     if DEBUG == True:
         driver.get_screenshot_as_file('kpu_main2.png')
@@ -66,10 +67,11 @@ def check_eclass_updates():
     subtitles = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'div.submain-leftarea > div > div > div.title')))
     notices = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located(\
             (By.CSS_SELECTOR, 'div.submain-leftarea > div > div.submain-noticebox > ol > li:nth-of-type(1) > em > a')))
+    dates = WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'div.submain-leftarea > div > div.submain-noticebox > ol > li:nth-child(1) > span')))
     latest_notices = []
     before_notices = []
     for i in range(len(subtitles)):
-        latest_notices.append(subtitles[i].text + ":" + notices[i].text + "\n")
+        latest_notices.append(subtitles[i].text+":"+notices[i].text+"\nDate:"+dates[i].text+"\n")
     try:
         with open(os.path.join(BASE_DIR, subject.text+'_latest_notices.txt'), 'r') as f_read:
             for k in range(len(subtitles)):
@@ -87,7 +89,7 @@ def check_eclass_updates():
                 before_notices.index(latest_notice)
             except ValueError:
                 print(latest_notice)
-                bot.sendMessage(chat_id=chat_id, text=subject.text + ' Updated >\n' + latest_notice)
+                bot.sendMessage(chat_id=chat_id, text=subject.text+' Updated >\n'+latest_notice)
         with open(os.path.join(BASE_DIR, subject.text+'_latest_notices.txt'), 'w+') as f_write:
             for latest_notice in latest_notices:
                 f_write.write(latest_notice)
